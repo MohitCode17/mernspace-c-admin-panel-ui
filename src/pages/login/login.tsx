@@ -38,6 +38,17 @@ const LoginPage = () => {
     enabled: false,
   });
 
+  // Logout Mutation
+  const { mutate: logoutMutate } = useMutation({
+    mutationKey: ["logout"],
+    mutationFn: logout,
+    onSuccess: async () => {
+      logoutFromStore();
+      return;
+    },
+  });
+
+  // Login Mutation
   const { mutate, isPending, isError, error } = useMutation({
     mutationKey: ["login"],
     mutationFn: loginUser,
@@ -46,15 +57,10 @@ const LoginPage = () => {
       const selfDataPromise = await refetch();
 
       if (!isAllowed(selfDataPromise.data)) {
-        await logout();
-        logoutFromStore();
+        logoutMutate();
         return;
       }
-      // if (selfDataPromise.data.role === "customer") {
-      //   await logout();
-      //   logoutFromStore();
-      //   return;
-      // }
+
       setUser(selfDataPromise.data);
     },
   });
