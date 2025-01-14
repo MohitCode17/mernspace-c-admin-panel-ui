@@ -2,9 +2,10 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router.tsx";
-import "antd/dist/reset.css";
 import { ConfigProvider } from "antd";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import "./index.css";
+import "antd/dist/reset.css";
 
 const queryClient = new QueryClient();
 
