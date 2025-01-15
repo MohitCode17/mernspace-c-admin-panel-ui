@@ -26,7 +26,6 @@ const Root = () => {
 
   useEffect(() => {
     if (data) {
-      console.log(data);
       setUser(data);
     }
   }, [data, setUser]);
