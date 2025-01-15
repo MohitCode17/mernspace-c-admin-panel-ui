@@ -109,7 +109,26 @@ const HomePage = () => {
               <Card
                 title={<CardTitle title="Sales" PrefixIcon={BarChartIcon} />}
                 bordered={false}
-              ></Card>
+              >
+                <div
+                  style={{
+                    height: "150px",
+                    background: "#f5f5f5",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <Text
+                    type="secondary"
+                    style={{
+                      lineHeight: "150px",
+                      textAlign: "center",
+                      display: "block",
+                    }}
+                  >
+                    Sales chart coming soon!
+                  </Text>
+                </div>
+              </Card>
             </Col>
           </Row>
         </Col>
