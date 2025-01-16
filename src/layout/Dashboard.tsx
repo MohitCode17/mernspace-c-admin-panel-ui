@@ -23,33 +23,46 @@ import { logout } from "../http/api";
 
 const { Header, Content, Footer, Sider } = Layout;
 
-const items = [
-  {
-    key: "/",
-    icon: <Icon component={Home} />,
-    label: <NavLink to="/">Home</NavLink>,
-  },
-  {
-    key: "/users",
-    icon: <Icon component={UserIcon} />,
-    label: <NavLink to="/users">Users</NavLink>,
-  },
-  {
-    key: "/restaurants",
-    icon: <Icon component={foodIcon} />,
-    label: <NavLink to="/restaurants">Restaurants</NavLink>,
-  },
-  {
-    key: "/products",
-    icon: <Icon component={BasketIcon} />,
-    label: <NavLink to="/products">Products</NavLink>,
-  },
-  {
-    key: "/promos",
-    icon: <Icon component={GiftIcon} />,
-    label: <NavLink to="/promos">Promos</NavLink>,
-  },
-];
+// Get menu items on the based of user role
+const getItemsBasedOnRole = (role: string) => {
+  // Baseitems is common
+  const baseItems = [
+    {
+      key: "/",
+      icon: <Icon component={Home} />,
+      label: <NavLink to="/">Home</NavLink>,
+    },
+    {
+      key: "/restaurants",
+      icon: <Icon component={foodIcon} />,
+      label: <NavLink to="/restaurants">Restaurants</NavLink>,
+    },
+    {
+      key: "/products",
+      icon: <Icon component={BasketIcon} />,
+      label: <NavLink to="/products">Products</NavLink>,
+    },
+    {
+      key: "/promos",
+      icon: <Icon component={GiftIcon} />,
+      label: <NavLink to="/promos">Promos</NavLink>,
+    },
+  ];
+
+  // If role is admin then only display the users list
+  if (role === "admin") {
+    const menus = [...baseItems];
+    menus.splice(1, 0, {
+      key: "/users",
+      icon: <Icon component={UserIcon} />,
+      label: <NavLink to="/users">Users</NavLink>,
+    });
+
+    return menus;
+  }
+
+  return baseItems;
+};
 
 const Dashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -73,6 +86,8 @@ const Dashboard = () => {
   const { user } = useAuthStore();
 
   if (user === null) return <Navigate to={"/auth/login"} replace={true} />;
+
+  const items = getItemsBasedOnRole(user.role);
 
   return (
     <>
