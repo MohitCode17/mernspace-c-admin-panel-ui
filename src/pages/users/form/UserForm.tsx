@@ -1,6 +1,18 @@
+import { useQuery } from "@tanstack/react-query";
 import { Card, Col, Form, Input, Row, Select, Space } from "antd";
+import { getTenants } from "../../../http/api";
+import { Tenant } from "../../../types";
 
 const UserForm = () => {
+  // Get all restaurants (Tenants)
+  const { data: tenants } = useQuery({
+    queryKey: ["tenants"],
+    queryFn: async () => {
+      const res = await getTenants();
+      return res.data;
+    },
+  });
+
   return (
     <Form>
       <Row>
@@ -123,15 +135,11 @@ const UserForm = () => {
                       placeholder="Select restaurant"
                       allowClear
                     >
-                      <Select.Option value="restaurant1">
-                        Restaurant 1
-                      </Select.Option>
-                      <Select.Option value="restaurant2">
-                        Restaurant 2
-                      </Select.Option>
-                      <Select.Option value="restaurant3">
-                        Restaurant 3
-                      </Select.Option>
+                      {tenants?.map((tenant: Tenant) => (
+                        <Select.Option value="restaurant1" key={tenant.id}>
+                          {tenant.name}
+                        </Select.Option>
+                      ))}
                     </Select>
                   </Form.Item>
                 </Col>
