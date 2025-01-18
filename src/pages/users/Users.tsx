@@ -1,9 +1,9 @@
-import { Breadcrumb, Button, Drawer, Space, Table, theme } from "antd";
+import { Breadcrumb, Button, Drawer, Form, Space, Table, theme } from "antd";
 import { RightOutlined, PlusOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { getUsers } from "../../http/api";
-import { User } from "../../types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createUsers, getUsers } from "../../http/api";
+import { CreateUserData, User } from "../../types";
 import UsersFilter from "./UsersFilter";
 import { useState } from "react";
 import UserForm from "./form/UserForm";
@@ -39,7 +39,12 @@ const columns = [
 ];
 
 const Users = () => {
+  const queryClient = useQueryClient();
+
+  const [form] = Form.useForm();
+
   const [drawerOpen, setDrawerOpen] = useState(false);
+
   const {
     token: { colorBgLayout },
   } = theme.useToken();
@@ -57,6 +62,30 @@ const Users = () => {
       return res.data;
     },
   });
+
+  // Create user mutation
+  const { mutate: createUserMutation } = useMutation({
+    mutationKey: ["createuser"],
+    mutationFn: async (data: CreateUserData) => {
+      const res = await createUsers(data);
+      return res.data;
+    },
+    onSuccess: async () => {
+      // Invalidate the query, if there any caching just remove it all call users query
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      return;
+    },
+  });
+
+  // Handle Form Submittion
+  const handleSubmit = async () => {
+    // Validate the fields
+    await form.validateFields();
+    // Call create user mutation
+    await createUserMutation(form.getFieldsValue());
+    form.resetFields();
+    setDrawerOpen(false);
+  };
 
   return (
     <>
@@ -94,16 +123,30 @@ const Users = () => {
           width={720}
           destroyOnClose={true}
           styles={{ body: { backgroundColor: colorBgLayout } }}
-          onClose={() => setDrawerOpen(false)}
+          onClose={() => {
+            form.resetFields();
+            setDrawerOpen(false);
+          }}
           open={drawerOpen}
           extra={
             <Space>
-              <Button>Cancel</Button>
-              <Button type="primary">Submit</Button>
+              <Button
+                onClick={() => {
+                  form.resetFields();
+                  setDrawerOpen(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="primary" onClick={handleSubmit}>
+                Submit
+              </Button>
             </Space>
           }
         >
-          <UserForm />
+          <Form form={form} layout="vertical">
+            <UserForm />
+          </Form>
         </Drawer>
       </Space>
     </>
