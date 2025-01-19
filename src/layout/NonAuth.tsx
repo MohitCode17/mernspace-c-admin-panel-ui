@@ -9,7 +9,6 @@ const NonAuth = () => {
 
   return (
     <div>
-      NonAuth
       <Outlet />
     </div>
   );

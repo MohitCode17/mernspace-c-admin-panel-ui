@@ -7,6 +7,7 @@ import { CreateUserData, User } from "../../types";
 import UsersFilter from "./UsersFilter";
 import { useState } from "react";
 import UserForm from "./form/UserForm";
+import { PER_PAGE } from "../../constants/constants";
 
 const columns = [
   {
@@ -45,6 +46,12 @@ const Users = () => {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  // Pagination logic
+  const [queryParams, setQueryParams] = useState({
+    currentPage: 1,
+    perPage: PER_PAGE,
+  });
+
   const {
     token: { colorBgLayout },
   } = theme.useToken();
@@ -56,9 +63,13 @@ const Users = () => {
     isError,
     error,
   } = useQuery({
-    queryKey: ["users"],
+    queryKey: ["users", queryParams],
     queryFn: async () => {
-      const res = await getUsers();
+      const querString = new URLSearchParams(
+        queryParams as unknown as Record<string, string>
+      ).toString();
+
+      const res = await getUsers(querString);
       return res.data;
     },
   });
@@ -115,7 +126,24 @@ const Users = () => {
           </Button>
         </UsersFilter>
         {/* User table */}
-        <Table columns={columns} dataSource={users} rowKey={"id"} />
+        <Table
+          columns={columns}
+          dataSource={users?.data}
+          rowKey={"id"}
+          pagination={{
+            total: users?.total,
+            pageSize: queryParams.perPage,
+            current: queryParams.currentPage,
+            onChange: (page) => {
+              setQueryParams((prev) => {
+                return {
+                  ...prev,
+                  currentPage: page,
+                };
+              });
+            },
+          }}
+        />
 
         {/* Drawer */}
         <Drawer
