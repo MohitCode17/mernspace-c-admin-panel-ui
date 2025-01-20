@@ -1,11 +1,12 @@
 import { Breadcrumb, Button, Drawer, Form, Space, Table, theme } from "antd";
 import { PlusOutlined, RightOutlined } from "@ant-design/icons";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import TenantsFilter from "./TenantsFilter";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getTenants } from "../../http/api";
 import TenantForm from "./form/TenantForm";
+import { useAuthStore } from "../../store";
 
 const columns = [
   {
@@ -27,6 +28,7 @@ const columns = [
 
 const Tenants = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { user } = useAuthStore();
 
   // Get All Tenants
   const {
@@ -45,6 +47,11 @@ const Tenants = () => {
   const {
     token: { colorBgLayout },
   } = theme.useToken();
+
+  // Check if user is not admin(redirect to home)
+  if (user?.role !== "admin") {
+    return <Navigate to={"/"} replace={true} />;
+  }
 
   return (
     <>

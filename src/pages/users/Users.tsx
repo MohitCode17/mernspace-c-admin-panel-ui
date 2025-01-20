@@ -15,7 +15,7 @@ import {
   PlusOutlined,
   LoadingOutlined,
 } from "@ant-design/icons";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import {
   keepPreviousData,
   useMutation,
@@ -29,6 +29,7 @@ import { useMemo, useState } from "react";
 import UserForm from "./form/UserForm";
 import { PER_PAGE } from "../../constants/constants";
 import { debounce } from "lodash";
+import { useAuthStore } from "../../store";
 
 const columns = [
   {
@@ -70,6 +71,7 @@ const columns = [
 
 const Users = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuthStore();
 
   const [form] = Form.useForm();
   const [filterForm] = Form.useForm();
@@ -160,6 +162,11 @@ const Users = () => {
       }));
     }
   };
+
+  // Check if user is not admin(redirect to home)
+  if (user?.role !== "admin") {
+    return <Navigate to={"/"} replace={true} />;
+  }
 
   return (
     <>
