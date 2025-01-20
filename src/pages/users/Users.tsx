@@ -25,9 +25,10 @@ import {
 import { createUsers, getUsers } from "../../http/api";
 import { CreateUserData, FieldData, User } from "../../types";
 import UsersFilter from "./UsersFilter";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import UserForm from "./form/UserForm";
 import { PER_PAGE } from "../../constants/constants";
+import { debounce } from "lodash";
 
 const columns = [
   {
@@ -125,28 +126,27 @@ const Users = () => {
     setDrawerOpen(false);
   };
 
+  // Debounce the search query
+  const debouncedQUpdate = useMemo(() => {
+    return debounce((value: string | undefined) => {
+      setQueryParams((prev) => ({ ...prev, q: value }));
+    }, 1000);
+  }, []);
+
   // Handle Filter Change
   const onFilterChange = (changedFields: FieldData[]) => {
-    // ChangedFilterFields format before reduce:
-    // [
-    //   {
-    //     q: "something",
-    //     role: "manager",
-    //   },
-    // ];
-
-    // After reduce
-    // {
-    //   q: "something"
-    // }
-
     const changedFilterFields = changedFields
       .map((item) => ({
         [item.name[0]]: item.value,
       }))
       .reduce((acc, item) => ({ ...acc, ...item }), {});
 
-    setQueryParams((prev) => ({ ...prev, ...changedFilterFields }));
+    // Debounce logic
+    if ("q" in changedFilterFields) {
+      debouncedQUpdate(changedFilterFields.q);
+    } else {
+      setQueryParams((prev) => ({ ...prev, ...changedFilterFields }));
+    }
   };
 
   return (
