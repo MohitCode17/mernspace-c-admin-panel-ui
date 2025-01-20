@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, NavLink, Outlet } from "react-router-dom";
+import { Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store";
 import Icon, { BellFilled } from "@ant-design/icons";
 import {
@@ -67,6 +67,7 @@ const getItemsBasedOnRole = (role: string) => {
 const Dashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
   const { logout: logoutFromStore } = useAuthStore();
+  const location = useLocation();
 
   // Logout mutation
   const { mutate: logoutMutate } = useMutation({
@@ -85,7 +86,13 @@ const Dashboard = () => {
   // Redirect to login if user is null
   const { user } = useAuthStore();
 
-  if (user === null) return <Navigate to={"/auth/login"} replace={true} />;
+  if (user === null)
+    return (
+      <Navigate
+        to={`/auth/login?returnTo=${location.pathname}`}
+        replace={true}
+      />
+    );
 
   const items = getItemsBasedOnRole(user.role);
 
