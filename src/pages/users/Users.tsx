@@ -22,10 +22,10 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { createUsers, getUsers } from "../../http/api";
+import { createUsers, getUsers, updateUser } from "../../http/api";
 import { CreateUserData, FieldData, User } from "../../types";
 import UsersFilter from "./UsersFilter";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import UserForm from "./form/UserForm";
 import { PER_PAGE } from "../../constants/constants";
 import { debounce } from "lodash";
@@ -77,6 +77,20 @@ const Users = () => {
   const [filterForm] = Form.useForm();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [currentEditingUser, setCurrentEditingUser] = useState<User | null>(
+    null
+  );
+
+  // Open drawer if currentEditingUser is not a null
+  useEffect(() => {
+    if (currentEditingUser) {
+      setDrawerOpen(true);
+      form.setFieldsValue({
+        ...currentEditingUser,
+        tenantId: currentEditingUser.tenant?.id,
+      });
+    }
+  }, [currentEditingUser, form]);
 
   // Pagination logic
   const [queryParams, setQueryParams] = useState({
@@ -126,13 +140,33 @@ const Users = () => {
     },
   });
 
+  // Update user mutation
+  const { mutate: updateUserMutation } = useMutation({
+    mutationKey: ["updateuser"],
+    mutationFn: async (data: CreateUserData) => {
+      const res = await updateUser(data, currentEditingUser!.id);
+      return res.data;
+    },
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      return;
+    },
+  });
+
   // Handle Form Submittion
   const handleSubmit = async () => {
     // Validate the fields
     await form.validateFields();
-    // Call create user mutation
-    await createUserMutation(form.getFieldsValue());
+
+    const isEditing = !!currentEditingUser;
+
+    if (isEditing) {
+      await updateUserMutation(form.getFieldsValue());
+    } else {
+      await createUserMutation(form.getFieldsValue());
+    }
     form.resetFields();
+    setCurrentEditingUser(null);
     setDrawerOpen(false);
   };
 
@@ -211,7 +245,26 @@ const Users = () => {
 
         {/* User table */}
         <Table
-          columns={columns}
+          columns={[
+            ...columns,
+            {
+              title: "Actions",
+              render: (_: string, record: User) => {
+                return (
+                  <Space>
+                    <Button
+                      type="link"
+                      onClick={() => {
+                        setCurrentEditingUser(record);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  </Space>
+                );
+              },
+            },
+          ]}
           dataSource={users?.data}
           rowKey={"id"}
           pagination={{
@@ -234,12 +287,13 @@ const Users = () => {
 
         {/* Drawer */}
         <Drawer
-          title="Create User"
+          title={currentEditingUser ? "Edit user" : "Create User"}
           width={720}
           destroyOnClose={true}
           styles={{ body: { backgroundColor: colorBgLayout } }}
           onClose={() => {
             form.resetFields();
+            setCurrentEditingUser(null);
             setDrawerOpen(false);
           }}
           open={drawerOpen}
@@ -260,7 +314,7 @@ const Users = () => {
           }
         >
           <Form form={form} layout="vertical">
-            <UserForm />
+            <UserForm isEditMode={!!currentEditingUser} />
           </Form>
         </Drawer>
       </Space>

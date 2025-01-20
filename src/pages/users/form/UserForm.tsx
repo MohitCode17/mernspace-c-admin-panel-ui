@@ -3,7 +3,7 @@ import { Card, Col, Form, Input, Row, Select, Space } from "antd";
 import { getTenants } from "../../../http/api";
 import { Tenant } from "../../../types";
 
-const UserForm = () => {
+const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
   // Get all restaurants (Tenants)
   const { data: tenants } = useQuery({
     queryKey: ["tenants"],
@@ -68,29 +68,31 @@ const UserForm = () => {
             </Row>
           </Card>
 
-          <Card title="Security info" bordered={false}>
-            <Row gutter={20}>
-              <Col span={12}>
-                <Form.Item
-                  label="Passoword"
-                  name="password"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Password required",
-                    },
-                    {
-                      min: 8,
-                      message:
-                        "Password length must have 8 or more characters.",
-                    },
-                  ]}
-                >
-                  <Input type="password" />
-                </Form.Item>
-              </Col>
-            </Row>
-          </Card>
+          {!isEditMode && (
+            <Card title="Security info" bordered={false}>
+              <Row gutter={20}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Passoword"
+                    name="password"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Password required",
+                      },
+                      {
+                        min: 8,
+                        message:
+                          "Password length must have 8 or more characters.",
+                      },
+                    ]}
+                  >
+                    <Input type="password" />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Card>
+          )}
 
           <Card title="Role" bordered={false}>
             <Row gutter={20}>

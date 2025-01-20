@@ -19,6 +19,7 @@ const UsersFilter = ({ children }: UserFilterProps) => {
             <Col span={8}>
               <Form.Item name={"role"}>
                 <Select
+                  id="selectBoxInUserForm"
                   style={{ width: "100%" }}
                   placeholder="Select role"
                   allowClear
