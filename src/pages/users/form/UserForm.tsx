@@ -4,6 +4,8 @@ import { getTenants } from "../../../http/api";
 import { Tenant } from "../../../types";
 
 const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
+  const selectedRole = Form.useWatch("role");
+
   // Get all restaurants (Tenants)
   const { data: tenants } = useQuery({
     queryKey: ["tenants"],
@@ -120,30 +122,32 @@ const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
                 </Form.Item>
               </Col>
 
-              <Col span={12}>
-                <Form.Item
-                  label="Restaurant"
-                  name="tenantId"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Restaurant is required",
-                    },
-                  ]}
-                >
-                  <Select
-                    style={{ width: "100%" }}
-                    placeholder="Select restaurant"
-                    allowClear
+              {selectedRole === "manager" && (
+                <Col span={12}>
+                  <Form.Item
+                    label="Restaurant"
+                    name="tenantId"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Restaurant is required",
+                      },
+                    ]}
                   >
-                    {tenants?.map((tenant: Tenant) => (
-                      <Select.Option value={tenant.id} key={tenant.id}>
-                        {tenant.name}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
+                    <Select
+                      style={{ width: "100%" }}
+                      placeholder="Select restaurant"
+                      allowClear
+                    >
+                      {tenants?.map((tenant: Tenant) => (
+                        <Select.Option value={tenant.id} key={tenant.id}>
+                          {tenant.name}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+              )}
             </Row>
           </Card>
         </Space>
