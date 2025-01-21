@@ -3,10 +3,11 @@ import { PlusOutlined, RightOutlined } from "@ant-design/icons";
 import { Link, Navigate } from "react-router-dom";
 import TenantsFilter from "./TenantsFilter";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getTenants } from "../../http/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createTenants, getTenants } from "../../http/api";
 import TenantForm from "./form/TenantForm";
 import { useAuthStore } from "../../store";
+import { CreateTenantData } from "../../types";
 
 const columns = [
   {
@@ -27,8 +28,14 @@ const columns = [
 ];
 
 const Tenants = () => {
+  const queryClient = useQueryClient();
+  const [form] = Form.useForm();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user } = useAuthStore();
+
+  const {
+    token: { colorBgLayout },
+  } = theme.useToken();
 
   // Get All Tenants
   const {
@@ -44,9 +51,29 @@ const Tenants = () => {
     },
   });
 
-  const {
-    token: { colorBgLayout },
-  } = theme.useToken();
+  // Create Tenant Mutation
+  const { mutate: createTenantMutation } = useMutation({
+    mutationKey: ["createtenant"],
+    mutationFn: async (data: CreateTenantData) => {
+      const res = await createTenants(data);
+      return res.data;
+    },
+
+    onSuccess: async () => {
+      // Invalidate the query, if there any caching just remove it all call users query
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+      return;
+    },
+  });
+
+  // Handle Tenant Submit
+  const handleSubmit = async () => {
+    await form.validateFields();
+    createTenantMutation(form.getFieldsValue());
+
+    form.resetFields();
+    setDrawerOpen(false);
+  };
 
   // Check if user is not admin(redirect to home)
   if (user?.role !== "admin") {
@@ -95,16 +122,19 @@ const Tenants = () => {
             <Space>
               <Button
                 onClick={() => {
+                  form.resetFields();
                   setDrawerOpen(false);
                 }}
               >
                 Cancel
               </Button>
-              <Button type="primary">Submit</Button>
+              <Button type="primary" onClick={handleSubmit}>
+                Submit
+              </Button>
             </Space>
           }
         >
-          <Form>
+          <Form form={form} layout="vertical">
             <TenantForm />
           </Form>
         </Drawer>
