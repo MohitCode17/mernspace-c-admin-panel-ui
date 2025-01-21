@@ -8,6 +8,7 @@ import { createTenants, getTenants } from "../../http/api";
 import TenantForm from "./form/TenantForm";
 import { useAuthStore } from "../../store";
 import { CreateTenantData } from "../../types";
+import { PER_PAGE } from "../../constants/constants";
 
 const columns = [
   {
@@ -33,6 +34,12 @@ const Tenants = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user } = useAuthStore();
 
+  // Pagination variables
+  const [queryParams, setQueryParams] = useState({
+    currentPage: 1,
+    perPage: PER_PAGE,
+  });
+
   const {
     token: { colorBgLayout },
   } = theme.useToken();
@@ -44,9 +51,13 @@ const Tenants = () => {
     isError,
     error,
   } = useQuery({
-    queryKey: ["tenants"],
+    queryKey: ["tenants", queryParams],
     queryFn: async () => {
-      const res = await getTenants();
+      const querString = new URLSearchParams(
+        queryParams as unknown as Record<string, string>
+      ).toString();
+
+      const res = await getTenants(querString);
       return res.data;
     },
   });
@@ -106,7 +117,27 @@ const Tenants = () => {
         </TenantsFilter>
 
         {/* Tenants Table */}
-        <Table columns={columns} dataSource={tenants} rowKey={"id"} />
+        <Table
+          columns={columns}
+          dataSource={tenants?.data}
+          rowKey={"id"}
+          pagination={{
+            total: tenants?.total,
+            pageSize: queryParams.perPage,
+            current: queryParams.currentPage,
+            onChange: (page) => {
+              setQueryParams((prev) => {
+                return {
+                  ...prev,
+                  currentPage: page,
+                };
+              });
+            },
+            showTotal: (total: number, range: number[]) => {
+              return `Showing ${range[0]}-${range[1]} of ${total} items`;
+            },
+          }}
+        />
 
         {/* Drawer */}
         <Drawer
