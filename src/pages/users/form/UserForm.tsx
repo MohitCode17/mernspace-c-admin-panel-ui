@@ -116,7 +116,6 @@ const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
                     options={[
                       { value: "admin", label: "Admin" },
                       { value: "manager", label: "Manager" },
-                      { value: "customer", label: "Customer" },
                     ]}
                   />
                 </Form.Item>
