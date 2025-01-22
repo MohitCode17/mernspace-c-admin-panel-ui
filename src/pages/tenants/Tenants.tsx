@@ -1,9 +1,29 @@
-import { Breadcrumb, Button, Drawer, Form, Space, Table, theme } from "antd";
-import { PlusOutlined, RightOutlined } from "@ant-design/icons";
+import {
+  Breadcrumb,
+  Button,
+  Drawer,
+  Flex,
+  Form,
+  Space,
+  Spin,
+  Table,
+  theme,
+  Typography,
+} from "antd";
+import {
+  LoadingOutlined,
+  PlusOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
 import { Link, Navigate } from "react-router-dom";
 import TenantsFilter from "./TenantsFilter";
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { createTenants, getTenants } from "../../http/api";
 import TenantForm from "./form/TenantForm";
 import { useAuthStore } from "../../store";
@@ -47,7 +67,7 @@ const Tenants = () => {
   // Get All Tenants
   const {
     data: tenants,
-    isLoading,
+    isFetching,
     isError,
     error,
   } = useQuery({
@@ -60,6 +80,7 @@ const Tenants = () => {
       const res = await getTenants(querString);
       return res.data;
     },
+    placeholderData: keepPreviousData,
   });
 
   // Create Tenant Mutation
@@ -94,16 +115,30 @@ const Tenants = () => {
   return (
     <>
       <Space direction="vertical" size={"large"} style={{ width: "100%" }}>
-        <Breadcrumb
-          separator={<RightOutlined />}
-          items={[
-            { title: <Link to={"/"}>Dashboard</Link> },
-            { title: "Restaurants" },
-          ]}
-        />
-
-        {isLoading && <div>Loading...</div>}
-        {isError && <div>{error.message}</div>}
+        <Flex justify="space-between">
+          <Breadcrumb
+            separator={<RightOutlined />}
+            items={[
+              { title: <Link to={"/"}>Dashboard</Link> },
+              { title: "Restaurants" },
+            ]}
+          />
+          {isFetching && (
+            <Spin
+              indicator={
+                <LoadingOutlined
+                  style={{
+                    fontSize: 24,
+                  }}
+                  spin
+                />
+              }
+            />
+          )}
+          {isError && (
+            <Typography.Text type="danger">{error.message}</Typography.Text>
+          )}
+        </Flex>
 
         {/* Tenants Filter */}
         <TenantsFilter>
