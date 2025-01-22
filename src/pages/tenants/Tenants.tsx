@@ -17,7 +17,7 @@ import {
 } from "@ant-design/icons";
 import { Link, Navigate } from "react-router-dom";
 import TenantsFilter from "./TenantsFilter";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   keepPreviousData,
   useMutation,
@@ -27,8 +27,9 @@ import {
 import { createTenants, getTenants } from "../../http/api";
 import TenantForm from "./form/TenantForm";
 import { useAuthStore } from "../../store";
-import { CreateTenantData } from "../../types";
+import { CreateTenantData, FieldData } from "../../types";
 import { PER_PAGE } from "../../constants/constants";
+import { debounce } from "lodash";
 
 const columns = [
   {
@@ -51,6 +52,7 @@ const columns = [
 const Tenants = () => {
   const queryClient = useQueryClient();
   const [form] = Form.useForm();
+  const [filterForm] = Form.useForm();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user } = useAuthStore();
 
@@ -107,6 +109,36 @@ const Tenants = () => {
     setDrawerOpen(false);
   };
 
+  // Debounce the search query
+  const debouncedQUpdate = useMemo(() => {
+    return debounce((value: string | undefined) => {
+      setQueryParams((prev) => ({ ...prev, q: value, currentPage: 1 }));
+    }, 500);
+  }, []);
+
+  // Search Tenant Functionality
+  const onFilterChange = (changedFields: FieldData[]) => {
+    // console.log(changedFields);
+    const changedFilterFields = changedFields
+      .map((item) => ({
+        [item.name[0]]: item.value,
+      }))
+      .reduce((acc, item) => ({ ...acc, ...item }), {});
+
+    // console.log(changedFilterFields);
+
+    // Debounce logic
+    if ("q" in changedFilterFields) {
+      debouncedQUpdate(changedFilterFields.q);
+    } else {
+      setQueryParams((prev) => ({
+        ...prev,
+        ...changedFilterFields,
+        currentPage: 1,
+      }));
+    }
+  };
+
   // Check if user is not admin(redirect to home)
   if (user?.role !== "admin") {
     return <Navigate to={"/"} replace={true} />;
@@ -141,15 +173,17 @@ const Tenants = () => {
         </Flex>
 
         {/* Tenants Filter */}
-        <TenantsFilter>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setDrawerOpen(true)}
-          >
-            Add Restaurant
-          </Button>
-        </TenantsFilter>
+        <Form form={filterForm} onFieldsChange={onFilterChange}>
+          <TenantsFilter>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setDrawerOpen(true)}
+            >
+              Add Restaurant
+            </Button>
+          </TenantsFilter>
+        </Form>
 
         {/* Tenants Table */}
         <Table

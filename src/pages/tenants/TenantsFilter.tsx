@@ -1,4 +1,4 @@
-import { Card, Col, Input, Row } from "antd";
+import { Card, Col, Form, Input, Row } from "antd";
 import React from "react";
 
 type TenantFilterProps = {
@@ -10,7 +10,9 @@ const TenantsFilter = ({ children }: TenantFilterProps) => {
     <Card>
       <Row justify={"space-between"}>
         <Col span={12}>
-          <Input.Search placeholder="Search" allowClear />
+          <Form.Item name={"q"}>
+            <Input.Search placeholder="Search" allowClear />
+          </Form.Item>
         </Col>
         <Col span={8} style={{ display: "flex", justifyContent: "end" }}>
           {children}
