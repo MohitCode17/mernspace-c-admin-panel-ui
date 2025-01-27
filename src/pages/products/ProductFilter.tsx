@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   Col,
@@ -9,12 +10,23 @@ import {
   Switch,
   Typography,
 } from "antd";
+import { getTenants } from "../../http/api";
+import { Tenant } from "../../types";
 
 type ProductFilterProps = {
   children: React.ReactNode;
 };
 
 const ProductFilter = ({ children }: ProductFilterProps) => {
+  // Get all restaurants list
+  const { data: restaurants } = useQuery({
+    queryKey: ["restaurants"],
+    queryFn: async () => {
+      const res = await getTenants(`perPage=100&currentPage=1`);
+      return res.data;
+    },
+  });
+
   return (
     <Card>
       <Row justify={"space-between"}>
@@ -43,15 +55,13 @@ const ProductFilter = ({ children }: ProductFilterProps) => {
                 style={{ width: "100%" }}
                 placeholder="Restaurant"
                 allowClear
-                options={[
-                  { value: "dominos", label: "Dominos" },
-                  { value: "zaika", label: "Zaika-e Delhi" },
-                  {
-                    value: "cafe-corner",
-                    label: "The Cafe Corner",
-                  },
-                ]}
-              />
+              >
+                {restaurants?.data.map((restaurant: Tenant) => (
+                  <Select.Option value={restaurant.id} key={restaurant.id}>
+                    {restaurant.name}
+                  </Select.Option>
+                ))}
+              </Select>
             </Col>
             <Col span={6}>
               <Space>

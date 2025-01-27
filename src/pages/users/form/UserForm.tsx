@@ -10,7 +10,7 @@ const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
   const { data: tenants } = useQuery({
     queryKey: ["tenants"],
     queryFn: async () => {
-      const res = await getTenants();
+      const res = await getTenants(`perPage=100&currentPage=1`);
       return res.data;
     },
   });
