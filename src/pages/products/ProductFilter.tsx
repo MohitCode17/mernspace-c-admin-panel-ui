@@ -10,8 +10,8 @@ import {
   Switch,
   Typography,
 } from "antd";
-import { getTenants } from "../../http/api";
-import { Tenant } from "../../types";
+import { getCategories, getTenants } from "../../http/api";
+import { Category, Tenant } from "../../types";
 
 type ProductFilterProps = {
   children: React.ReactNode;
@@ -23,6 +23,15 @@ const ProductFilter = ({ children }: ProductFilterProps) => {
     queryKey: ["restaurants"],
     queryFn: async () => {
       const res = await getTenants(`perPage=100&currentPage=1`);
+      return res.data;
+    },
+  });
+
+  // Get all categories
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const res = await getCategories();
       return res.data;
     },
   });
@@ -43,11 +52,13 @@ const ProductFilter = ({ children }: ProductFilterProps) => {
                   style={{ width: "100%" }}
                   placeholder="Select category"
                   allowClear
-                  options={[
-                    { value: "pizza", label: "Pizza" },
-                    { value: "beverages", label: "Beverages" },
-                  ]}
-                />
+                >
+                  {categories?.map((category: Category) => (
+                    <Select.Option value={category._id} key={category._id}>
+                      {category.name}
+                    </Select.Option>
+                  ))}
+                </Select>
               </Form.Item>
             </Col>
             <Col span={6}>

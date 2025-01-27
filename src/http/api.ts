@@ -26,3 +26,6 @@ export const updateUser = (user: CreateUserData, id: string) =>
 
 export const createTenants = (tenant: CreateTenantData) =>
   api.post(`${AUTH_SERVICE}/tenants`, tenant);
+
+// Catalog service
+export const getCategories = () => api.get(`${CATALOG_SERVICE}/categories`);

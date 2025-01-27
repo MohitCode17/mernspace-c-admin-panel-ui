@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, Col, Form, Input, Row, Select, Space } from "antd";
-import { getTenants } from "../../../http/api";
+import { getCategories, getTenants } from "../../../http/api";
 import { Tenant } from "../../../types";
 
 const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
@@ -14,6 +14,18 @@ const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
       return res.data;
     },
   });
+
+  // Get all categories
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      return await getCategories();
+    },
+  });
+
+  console.log(categories);
+
+  console.log();
 
   return (
     <Row>
