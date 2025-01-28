@@ -62,17 +62,19 @@ const ProductFilter = ({ children }: ProductFilterProps) => {
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Select
-                style={{ width: "100%" }}
-                placeholder="Restaurant"
-                allowClear
-              >
-                {restaurants?.data.map((restaurant: Tenant) => (
-                  <Select.Option value={restaurant.id} key={restaurant.id}>
-                    {restaurant.name}
-                  </Select.Option>
-                ))}
-              </Select>
+              <Form.Item name={"category"}>
+                <Select
+                  style={{ width: "100%" }}
+                  placeholder="Restaurant"
+                  allowClear
+                >
+                  {restaurants?.data.map((restaurant: Tenant) => (
+                    <Select.Option value={restaurant.id} key={restaurant.id}>
+                      {restaurant.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
             </Col>
             <Col span={6}>
               <Space>
