@@ -17,11 +17,12 @@ import {
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import ProductFilter from "./ProductFilter";
-import { Product } from "../../types";
+import { FieldData, Product } from "../../types";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { PER_PAGE } from "../../constants/constants";
 import { getProducts } from "../../http/api";
+import { debounce } from "lodash";
 
 const columns = [
   {
@@ -85,8 +86,8 @@ const Products = () => {
 
   // Pagination logic
   const [queryParams, setQueryParams] = useState({
-    currentPage: 1,
-    perPage: PER_PAGE,
+    limit: PER_PAGE,
+    page: 1,
   });
 
   // Get Products
@@ -112,6 +113,33 @@ const Products = () => {
     },
     placeholderData: keepPreviousData,
   });
+
+  // Debounce the search query
+  const debouncedQUpdate = useMemo(() => {
+    return debounce((value: string | undefined) => {
+      setQueryParams((prev) => ({ ...prev, q: value, currentPage: 1 }));
+    }, 500);
+  }, []);
+
+  // Handle Filter Change
+  const onFilterChange = (changedFields: FieldData[]) => {
+    const changedFilterFields = changedFields
+      .map((item) => ({
+        [item.name[0]]: item.value,
+      }))
+      .reduce((acc, item) => ({ ...acc, ...item }), {});
+
+    // Debounce logic
+    if ("q" in changedFilterFields) {
+      debouncedQUpdate(changedFilterFields.q);
+    } else {
+      setQueryParams((prev) => ({
+        ...prev,
+        ...changedFilterFields,
+        page: 1,
+      }));
+    }
+  };
 
   return (
     <>
@@ -142,7 +170,7 @@ const Products = () => {
         </Flex>
 
         {/* Product filter  */}
-        <Form form={filterForm}>
+        <Form form={filterForm} onFieldsChange={onFilterChange}>
           <ProductFilter>
             <Button type="primary" icon={<PlusOutlined />}>
               Add Product
@@ -171,13 +199,13 @@ const Products = () => {
           rowKey={"_id"}
           pagination={{
             total: products?.total,
-            pageSize: queryParams.perPage,
-            current: queryParams.currentPage,
+            pageSize: queryParams.limit,
+            current: queryParams.page,
             onChange: (page) => {
               setQueryParams((prev) => {
                 return {
                   ...prev,
-                  currentPage: page,
+                  page: page,
                 };
               });
             },
