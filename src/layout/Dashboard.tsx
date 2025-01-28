@@ -125,7 +125,7 @@ const Dashboard = () => {
           >
             <Flex gap="middle" align="start" justify="space-between">
               <Badge
-                text={user.role === "admin" ? "Admin" : user.tenant?.name}
+                text={user.role === "admin" ? "Admin" : "Manager"}
                 status="success"
               />
               <Space size={16}>

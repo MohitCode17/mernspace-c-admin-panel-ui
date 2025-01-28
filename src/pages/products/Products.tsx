@@ -23,6 +23,7 @@ import { useMemo, useState } from "react";
 import { PER_PAGE } from "../../constants/constants";
 import { getProducts } from "../../http/api";
 import { debounce } from "lodash";
+import { useAuthStore } from "../../store";
 
 const columns = [
   {
@@ -83,11 +84,13 @@ const columns = [
 
 const Products = () => {
   const [filterForm] = Form.useForm();
+  const { user } = useAuthStore();
 
   // Pagination logic
   const [queryParams, setQueryParams] = useState({
     limit: PER_PAGE,
     page: 1,
+    tenantId: user!.role === "manager" ? user?.tenant?.id : undefined,
   });
 
   // Get Products

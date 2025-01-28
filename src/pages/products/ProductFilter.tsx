@@ -12,12 +12,15 @@ import {
 } from "antd";
 import { getCategories, getTenants } from "../../http/api";
 import { Category, Tenant } from "../../types";
+import { useAuthStore } from "../../store";
 
 type ProductFilterProps = {
   children: React.ReactNode;
 };
 
 const ProductFilter = ({ children }: ProductFilterProps) => {
+  const { user } = useAuthStore();
+
   // Get all restaurants list
   const { data: restaurants } = useQuery({
     queryKey: ["restaurants"],
@@ -61,21 +64,24 @@ const ProductFilter = ({ children }: ProductFilterProps) => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={6}>
-              <Form.Item name={"tenantId"}>
-                <Select
-                  style={{ width: "100%" }}
-                  placeholder="Restaurant"
-                  allowClear
-                >
-                  {restaurants?.data.map((restaurant: Tenant) => (
-                    <Select.Option value={restaurant.id} key={restaurant.id}>
-                      {restaurant.name}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
+            {user!.role === "admin" && (
+              <Col span={6}>
+                <Form.Item name={"tenantId"}>
+                  <Select
+                    style={{ width: "100%" }}
+                    placeholder="Restaurant"
+                    allowClear
+                  >
+                    {restaurants?.data.map((restaurant: Tenant) => (
+                      <Select.Option value={restaurant.id} key={restaurant.id}>
+                        {restaurant.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+            )}
+
             <Col span={6}>
               <Space>
                 <Form.Item name="isPublish">
