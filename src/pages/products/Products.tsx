@@ -1,6 +1,7 @@
 import {
   Breadcrumb,
   Button,
+  Drawer,
   Flex,
   Form,
   Image,
@@ -8,6 +9,7 @@ import {
   Spin,
   Table,
   Tag,
+  theme,
   Typography,
 } from "antd";
 import {
@@ -24,6 +26,7 @@ import { PER_PAGE } from "../../constants/constants";
 import { getProducts } from "../../http/api";
 import { debounce } from "lodash";
 import { useAuthStore } from "../../store";
+import ProductForm from "./form/ProductForm";
 
 const columns = [
   {
@@ -84,7 +87,12 @@ const columns = [
 
 const Products = () => {
   const [filterForm] = Form.useForm();
+  const [form] = Form.useForm();
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const { user } = useAuthStore();
+  const {
+    token: { colorBgLayout },
+  } = theme.useToken();
 
   // Pagination logic
   const [queryParams, setQueryParams] = useState({
@@ -175,7 +183,11 @@ const Products = () => {
         {/* Product filter  */}
         <Form form={filterForm} onFieldsChange={onFilterChange}>
           <ProductFilter>
-            <Button type="primary" icon={<PlusOutlined />}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setDrawerOpen(true)}
+            >
               Add Product
             </Button>
           </ProductFilter>
@@ -217,6 +229,36 @@ const Products = () => {
             },
           }}
         />
+
+        {/* Drawer */}
+        <Drawer
+          title={"Add Product"}
+          width={720}
+          destroyOnClose={true}
+          styles={{ body: { backgroundColor: colorBgLayout } }}
+          onClose={() => {
+            form.resetFields();
+            setDrawerOpen(false);
+          }}
+          open={drawerOpen}
+          extra={
+            <Space>
+              <Button
+                onClick={() => {
+                  form.resetFields();
+                  setDrawerOpen(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="primary">Submit</Button>
+            </Space>
+          }
+        >
+          <Form form={form} layout="vertical">
+            <ProductForm />
+          </Form>
+        </Drawer>
       </Space>
     </>
   );
