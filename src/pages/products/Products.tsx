@@ -178,29 +178,6 @@ const Products = () => {
   const handleSubmit = async () => {
     await form.validateFields();
 
-    // const priceConfigDummyData = {
-    //   Size: {
-    //     priceType: "base",
-    //     availableOptions: { Small: 400, Medium: 600, Large: 800 },
-    //   },
-    //   Crust: {
-    //     priceType: "aditional",
-    //     availableOptions: { Thin: 50, Thick: 100 },
-    //   },
-    // };
-
-    // const currentData = {
-    //   '{"configurationKey":"Size","priceType":"base"}': {
-    //     Small: 150,
-    //     Medium: 289,
-    //     Large: 455,
-    //   },
-    //   '{"configurationKey":"Crust","priceType":"aditional"}': {
-    //     Thin: 0,
-    //     Thick: 50,
-    //   },
-    // };
-
     const priceConfiguration = form.getFieldValue("priceConfiguration");
     const pricing = Object.entries(priceConfiguration).reduce(
       (acc, [key, value]) => {
@@ -217,53 +194,7 @@ const Products = () => {
       {}
     );
 
-    // const pricingBeforeReduce = [
-    //   [
-    //     '{"configurationKey":"Size","priceType":"base"}',
-    //     {
-    //       Small: 150,
-    //       Medium: 289,
-    //       Large: 455,
-    //     },
-    //   ],
-    //   [
-    //     '{"configurationKey":"Crust","priceType":"aditional"}',
-    //     {
-    //       Thin: 0,
-    //       Thick: 50,
-    //     },
-    //   ],
-    // ];
-
-    // const pricingAfterReduce = {
-    //   Size: {
-    //     priceType: "base",
-    //     availableOptions: {
-    //       Small: 140,
-    //       Medium: 220,
-    //       Large: 400,
-    //     },
-    //   },
-    //   Crust: {
-    //     priceType: "aditional",
-    //     availableOptions: {
-    //       Thin: 0,
-    //       Thick: 30,
-    //     },
-    //   },
-    // };
-
     const categoryId = JSON.parse(form.getFieldValue("categoryId"))._id;
-
-    // const attributes = [
-    //   { name: "isHit", value: "Yes" },
-    //   { name: "Spiciness", value: "Medium" },
-    // ];
-
-    // const changedToBe = {
-    //   isHit: true,
-    //   Spiciness: "Less",
-    // };
 
     const attributes = Object.entries(form.getFieldValue("attributes")).map(
       ([key, value]) => {
