@@ -20,13 +20,19 @@ import {
 import { Link } from "react-router-dom";
 import ProductFilter from "./ProductFilter";
 import { FieldData, Product } from "../../types";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { PER_PAGE } from "../../constants/constants";
-import { getProducts } from "../../http/api";
+import { createProduct, getProducts } from "../../http/api";
 import { debounce } from "lodash";
 import { useAuthStore } from "../../store";
 import ProductForm from "./form/ProductForm";
+import { makeFormData } from "./helpers";
 
 const columns = [
   {
@@ -90,6 +96,7 @@ const Products = () => {
   const [form] = Form.useForm();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
   const {
     token: { colorBgLayout },
   } = theme.useToken();
@@ -125,6 +132,21 @@ const Products = () => {
     placeholderData: keepPreviousData,
   });
 
+  // Create user mutation
+  const { mutate: productMutation } = useMutation({
+    mutationKey: ["product"],
+    mutationFn: async (data: FormData) => {
+      const res = await createProduct(data);
+      return res.data;
+    },
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      form.resetFields();
+      setDrawerOpen(false);
+      return;
+    },
+  });
+
   // Debounce the search query
   const debouncedQUpdate = useMemo(() => {
     return debounce((value: string | undefined) => {
@@ -150,6 +172,118 @@ const Products = () => {
         page: 1,
       }));
     }
+  };
+
+  // Handle Form submit
+  const handleSubmit = async () => {
+    await form.validateFields();
+
+    // const priceConfigDummyData = {
+    //   Size: {
+    //     priceType: "base",
+    //     availableOptions: { Small: 400, Medium: 600, Large: 800 },
+    //   },
+    //   Crust: {
+    //     priceType: "aditional",
+    //     availableOptions: { Thin: 50, Thick: 100 },
+    //   },
+    // };
+
+    // const currentData = {
+    //   '{"configurationKey":"Size","priceType":"base"}': {
+    //     Small: 150,
+    //     Medium: 289,
+    //     Large: 455,
+    //   },
+    //   '{"configurationKey":"Crust","priceType":"aditional"}': {
+    //     Thin: 0,
+    //     Thick: 50,
+    //   },
+    // };
+
+    const priceConfiguration = form.getFieldValue("priceConfiguration");
+    const pricing = Object.entries(priceConfiguration).reduce(
+      (acc, [key, value]) => {
+        const parsedKey = JSON.parse(key);
+
+        return {
+          ...acc,
+          [parsedKey.configurationKey]: {
+            priceType: parsedKey.priceType,
+            availableOptions: value,
+          },
+        };
+      },
+      {}
+    );
+
+    // const pricingBeforeReduce = [
+    //   [
+    //     '{"configurationKey":"Size","priceType":"base"}',
+    //     {
+    //       Small: 150,
+    //       Medium: 289,
+    //       Large: 455,
+    //     },
+    //   ],
+    //   [
+    //     '{"configurationKey":"Crust","priceType":"aditional"}',
+    //     {
+    //       Thin: 0,
+    //       Thick: 50,
+    //     },
+    //   ],
+    // ];
+
+    // const pricingAfterReduce = {
+    //   Size: {
+    //     priceType: "base",
+    //     availableOptions: {
+    //       Small: 140,
+    //       Medium: 220,
+    //       Large: 400,
+    //     },
+    //   },
+    //   Crust: {
+    //     priceType: "aditional",
+    //     availableOptions: {
+    //       Thin: 0,
+    //       Thick: 30,
+    //     },
+    //   },
+    // };
+
+    const categoryId = JSON.parse(form.getFieldValue("categoryId"))._id;
+
+    // const attributes = [
+    //   { name: "isHit", value: "Yes" },
+    //   { name: "Spiciness", value: "Medium" },
+    // ];
+
+    // const changedToBe = {
+    //   isHit: true,
+    //   Spiciness: "Less",
+    // };
+
+    const attributes = Object.entries(form.getFieldValue("attributes")).map(
+      ([key, value]) => {
+        return {
+          name: key,
+          value: value,
+        };
+      }
+    );
+
+    const postData = {
+      ...form.getFieldsValue(),
+      isPublish: form.getFieldValue("isPublish") ? true : false,
+      categoryId,
+      priceConfiguration: pricing,
+      attributes,
+    };
+
+    const formData = makeFormData(postData);
+    await productMutation(formData);
   };
 
   return (
@@ -251,7 +385,9 @@ const Products = () => {
               >
                 Cancel
               </Button>
-              <Button type="primary">Submit</Button>
+              <Button type="primary" onClick={handleSubmit}>
+                Submit
+              </Button>
             </Space>
           }
         >
