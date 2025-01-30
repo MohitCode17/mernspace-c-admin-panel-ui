@@ -133,19 +133,20 @@ const Products = () => {
   });
 
   // Create user mutation
-  const { mutate: productMutation } = useMutation({
-    mutationKey: ["product"],
-    mutationFn: async (data: FormData) => {
-      const res = await createProduct(data);
-      return res.data;
-    },
-    onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      form.resetFields();
-      setDrawerOpen(false);
-      return;
-    },
-  });
+  const { mutate: productMutation, isPending: createProductLoading } =
+    useMutation({
+      mutationKey: ["product"],
+      mutationFn: async (data: FormData) => {
+        const res = await createProduct(data);
+        return res.data;
+      },
+      onSuccess: async () => {
+        queryClient.invalidateQueries({ queryKey: ["products"] });
+        form.resetFields();
+        setDrawerOpen(false);
+        return;
+      },
+    });
 
   // Debounce the search query
   const debouncedQUpdate = useMemo(() => {
@@ -316,7 +317,11 @@ const Products = () => {
               >
                 Cancel
               </Button>
-              <Button type="primary" onClick={handleSubmit}>
+              <Button
+                type="primary"
+                loading={createProductLoading}
+                onClick={handleSubmit}
+              >
                 Submit
               </Button>
             </Space>
