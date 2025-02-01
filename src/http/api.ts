@@ -39,3 +39,6 @@ export const createProduct = (productData: FormData) =>
       "Content-Type": "multipart/form-data",
     },
   });
+
+export const getCategory = (id: string) =>
+  api.get(`${CATALOG_SERVICE}/categories/${id}`);

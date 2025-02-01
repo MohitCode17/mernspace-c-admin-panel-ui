@@ -26,7 +26,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PER_PAGE } from "../../constants/constants";
 import { createProduct, getProducts } from "../../http/api";
 import { debounce } from "lodash";
@@ -96,6 +96,9 @@ const Products = () => {
   const [form] = Form.useForm();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user } = useAuthStore();
+  const [currentEditProduct, setCurrentEditProduct] = useState<Product | null>(
+    null
+  );
   const queryClient = useQueryClient();
   const {
     token: { colorBgLayout },
@@ -222,6 +225,49 @@ const Products = () => {
     await productMutation(formData);
   };
 
+  // Handle Update Product
+  useEffect(() => {
+    if (currentEditProduct) {
+      setDrawerOpen(true);
+
+      // console.log("Price config before", currentEditProduct.priceConfiguration);
+
+      const priceConfiguration = Object.entries(
+        currentEditProduct.priceConfiguration
+      ).reduce((acc, [key, value]) => {
+        const stringifiedKey = JSON.stringify({
+          configurationKey: key,
+          priceType: value.priceType,
+        });
+
+        return {
+          ...acc,
+          [stringifiedKey]: value.availableOptions,
+        };
+      }, {});
+
+      // console.log("Price config after", priceConfiguration);
+
+      // console.log("Attributes", currentEditProduct.attributes);
+
+      const attributes = currentEditProduct.attributes.reduce((acc, item) => {
+        return {
+          ...acc,
+          [item.name]: item.value,
+        };
+      }, {});
+
+      // console.log("Attributes after", attributes);
+
+      form.setFieldsValue({
+        ...currentEditProduct,
+        priceConfiguration,
+        attributes,
+        categoryId: currentEditProduct.category._id,
+      });
+    }
+  }, [currentEditProduct, form]);
+
   return (
     <>
       <Space direction="vertical" size={"large"} style={{ width: "100%" }}>
@@ -269,10 +315,15 @@ const Products = () => {
             ...columns,
             {
               title: "Actions",
-              render: () => {
+              render: (_, record: Product) => {
                 return (
                   <Space>
-                    <Button type="link" onClick={() => {}}>
+                    <Button
+                      type="link"
+                      onClick={() => {
+                        setCurrentEditProduct(record);
+                      }}
+                    >
                       Edit
                     </Button>
                   </Space>
@@ -332,7 +383,7 @@ const Products = () => {
           }
         >
           <Form form={form} layout="vertical">
-            <ProductForm />
+            <ProductForm form={form} />
           </Form>
         </Drawer>
       </Space>
