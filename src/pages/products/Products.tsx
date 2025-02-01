@@ -28,7 +28,7 @@ import {
 } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { PER_PAGE } from "../../constants/constants";
-import { createProduct, getProducts } from "../../http/api";
+import { createProduct, getProducts, updateProduct } from "../../http/api";
 import { debounce } from "lodash";
 import { useAuthStore } from "../../store";
 import ProductForm from "./form/ProductForm";
@@ -140,8 +140,15 @@ const Products = () => {
     useMutation({
       mutationKey: ["product"],
       mutationFn: async (data: FormData) => {
-        const res = await createProduct(data);
-        return res.data;
+        if (currentEditProduct) {
+          // Inside a Edit Mode(Update the product)
+          const res = await updateProduct(data, currentEditProduct._id);
+          return res.data;
+        } else {
+          // Create a new product
+          const res = await createProduct(data);
+          return res.data;
+        }
       },
       onSuccess: async () => {
         queryClient.invalidateQueries({ queryKey: ["products"] });
@@ -198,7 +205,7 @@ const Products = () => {
       {}
     );
 
-    const categoryId = JSON.parse(form.getFieldValue("categoryId"))._id;
+    const categoryId = form.getFieldValue("categoryId");
 
     const attributes = Object.entries(form.getFieldValue("attributes")).map(
       ([key, value]) => {
@@ -230,8 +237,6 @@ const Products = () => {
     if (currentEditProduct) {
       setDrawerOpen(true);
 
-      // console.log("Price config before", currentEditProduct.priceConfiguration);
-
       const priceConfiguration = Object.entries(
         currentEditProduct.priceConfiguration
       ).reduce((acc, [key, value]) => {
@@ -246,18 +251,12 @@ const Products = () => {
         };
       }, {});
 
-      // console.log("Price config after", priceConfiguration);
-
-      // console.log("Attributes", currentEditProduct.attributes);
-
       const attributes = currentEditProduct.attributes.reduce((acc, item) => {
         return {
           ...acc,
           [item.name]: item.value,
         };
       }, {});
-
-      // console.log("Attributes after", attributes);
 
       form.setFieldsValue({
         ...currentEditProduct,
@@ -353,11 +352,12 @@ const Products = () => {
 
         {/* Drawer */}
         <Drawer
-          title={"Add Product"}
+          title={currentEditProduct ? "Update Product" : "Add Product"}
           width={720}
           destroyOnClose={true}
           styles={{ body: { backgroundColor: colorBgLayout } }}
           onClose={() => {
+            setCurrentEditProduct(null);
             form.resetFields();
             setDrawerOpen(false);
           }}
@@ -366,6 +366,7 @@ const Products = () => {
             <Space>
               <Button
                 onClick={() => {
+                  setCurrentEditProduct(null);
                   form.resetFields();
                   setDrawerOpen(false);
                 }}
