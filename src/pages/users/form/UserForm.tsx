@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, Col, Form, Input, Row, Select, Space } from "antd";
-import { getCategories, getTenants } from "../../../http/api";
+import { getTenants } from "../../../http/api";
 import { Tenant } from "../../../types";
 
 const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
@@ -14,18 +14,6 @@ const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
       return res.data;
     },
   });
-
-  // Get all categories
-  const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      return await getCategories();
-    },
-  });
-
-  console.log(categories);
-
-  console.log();
 
   return (
     <Row>
@@ -150,7 +138,7 @@ const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
                       placeholder="Select restaurant"
                       allowClear
                     >
-                      {tenants?.map((tenant: Tenant) => (
+                      {tenants?.data.map((tenant: Tenant) => (
                         <Select.Option value={tenant.id} key={tenant.id}>
                           {tenant.name}
                         </Select.Option>
