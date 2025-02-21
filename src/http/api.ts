@@ -3,6 +3,7 @@ import { api } from "./client";
 
 export const AUTH_SERVICE = "/api/auth";
 export const CATALOG_SERVICE = "/api/catalog";
+export const ORDER_SERVICE = "/api/order";
 
 // Auth service
 export const login = (credentials: Credentials) =>
@@ -49,3 +50,6 @@ export const updateProduct = (productData: FormData, productId: string) =>
 
 export const getCategory = (id: string) =>
   api.get(`${CATALOG_SERVICE}/categories/${id}`);
+
+export const getOrders = (tenantId: string) =>
+  api.get(`${ORDER_SERVICE}/orders?${tenantId}`);

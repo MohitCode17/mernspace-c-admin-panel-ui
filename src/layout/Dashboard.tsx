@@ -20,6 +20,7 @@ import GiftIcon from "../components/icons/GiftIcon";
 import Logo from "../components/icons/Logo";
 import { useMutation } from "@tanstack/react-query";
 import { logout } from "../http/api";
+import ToppingIcon from "../components/icons/ToppingIcon";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -36,6 +37,16 @@ const getItemsBasedOnRole = (role: string) => {
       key: "/products",
       icon: <Icon component={BasketIcon} />,
       label: <NavLink to="/products">Products</NavLink>,
+    },
+    {
+      key: "/toppings",
+      icon: <Icon component={ToppingIcon} />,
+      label: <NavLink to="/toppings">Toppings</NavLink>,
+    },
+    {
+      key: "/orders",
+      icon: <Icon component={BasketIcon} />,
+      label: <NavLink to="/orders">Orders</NavLink>,
     },
     {
       key: "/promos",
@@ -160,7 +171,7 @@ const Dashboard = () => {
             <Outlet />
           </Content>
           <Footer style={{ textAlign: "center" }}>
-            ©{new Date().getFullYear()} Oven Bliss, All right reserved.
+            ©{new Date().getFullYear()} Pizza Point, All right reserved.
           </Footer>
         </Layout>
       </Layout>
