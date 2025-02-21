@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { Order } from "../../types";
 import { useQuery } from "@tanstack/react-query";
 import { getOrders } from "../../http/api";
+import { colorMapping } from "../../constants/constants";
+import { capitalize } from "lodash";
 
 const columns = [
   {
@@ -45,7 +47,7 @@ const columns = [
     dataIndex: "paymentMode",
     key: "paymentMode",
     render: (_: string, record: Order) => (
-      <Typography.Text>{record.paymentMode}</Typography.Text>
+      <Typography.Text>{capitalize(record.paymentMode)}</Typography.Text>
     ),
   },
   {
@@ -55,7 +57,9 @@ const columns = [
     render: (_: boolean, record: Order) => {
       return (
         <>
-          <Tag color="green">{record.orderStatus.toUpperCase()}</Tag>
+          <Tag color={colorMapping[record.orderStatus]}>
+            {capitalize(record.orderStatus)}
+          </Tag>
         </>
       );
     },
