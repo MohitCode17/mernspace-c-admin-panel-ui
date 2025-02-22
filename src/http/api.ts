@@ -53,3 +53,6 @@ export const getCategory = (id: string) =>
 
 export const getOrders = (tenantId: string) =>
   api.get(`${ORDER_SERVICE}/orders?${tenantId}`);
+
+export const getSingleOrder = (orderId: string, queryString: string) =>
+  api.get(`${ORDER_SERVICE}/orders/${orderId}?${queryString}`);

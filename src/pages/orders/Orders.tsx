@@ -110,8 +110,6 @@ const Orders = () => {
     },
   });
 
-  console.log("Orders", orders);
-
   return (
     <>
       <Space direction="vertical" size={"large"} style={{ width: "100%" }}>
