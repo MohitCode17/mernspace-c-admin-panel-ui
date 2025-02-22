@@ -6,20 +6,45 @@ import {
   Flex,
   List,
   Row,
+  Select,
   Space,
   Tag,
   Typography,
 } from "antd";
 import { RightOutlined } from "@ant-design/icons";
 import { Link, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { getSingleOrder } from "../../http/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { changeStatus, getSingleOrder } from "../../http/api";
 import { capitalize } from "../products/helpers";
 import { colorMapping } from "../../constants/constants";
-import { Order } from "../../types";
+import { Order, OrderStatus } from "../../types";
+
+const orderStatusOptions = [
+  {
+    value: "received",
+    label: "Received",
+  },
+  {
+    value: "confirmed",
+    label: "Confirmed",
+  },
+  {
+    value: "prepared",
+    label: "Prepared",
+  },
+  {
+    value: "out_for_delivery",
+    label: "Out For Delivery",
+  },
+  {
+    value: "delivered",
+    label: "Delivered",
+  },
+];
 
 const SingleOrder = () => {
   const { orderId } = useParams();
+  const queryClient = useQueryClient();
 
   // FETCH SINGLE ORDER DETAIL
   const { data: order } = useQuery<Order>({
@@ -35,9 +60,26 @@ const SingleOrder = () => {
     },
   });
 
+  // CHANGE STATUS MUTATION
+  const { mutate } = useMutation({
+    mutationKey: ["order", orderId],
+    mutationFn: async (status: OrderStatus) => {
+      return changeStatus(orderId as string, { status }).then(
+        (res) => res.data
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["order", orderId] });
+    },
+  });
+
   if (!order) {
     return null;
   }
+
+  const handleStatusChange = (status: OrderStatus) => {
+    mutate(status);
+  };
 
   return (
     <Space direction="vertical" size={"large"} style={{ width: "100%" }}>
@@ -50,6 +92,18 @@ const SingleOrder = () => {
             { title: `Orders #${order._id}` },
           ]}
         />
+
+        <Space>
+          <Typography.Text>Change Order Status</Typography.Text>
+          <Select
+            defaultValue={order.orderStatus}
+            style={{
+              width: 150,
+            }}
+            onChange={handleStatusChange}
+            options={orderStatusOptions}
+          />
+        </Space>
       </Flex>
 
       <Row gutter={24}>
