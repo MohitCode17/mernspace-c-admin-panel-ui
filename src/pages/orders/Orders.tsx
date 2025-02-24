@@ -6,6 +6,9 @@ import { useQuery } from "@tanstack/react-query";
 import { getOrders } from "../../http/api";
 import { colorMapping } from "../../constants/constants";
 import { capitalize } from "lodash";
+import { useEffect } from "react";
+import socket from "../../lib/socket";
+import { useAuthStore } from "../../store";
 
 const columns = [
   {
@@ -97,6 +100,30 @@ const columns = [
 const TENANT_ID = 1;
 
 const Orders = () => {
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    if (user?.tenant) {
+      socket.on("order-update", (data) => {
+        console.log("Data received", data);
+      });
+
+      socket.on("join", (data) => {
+        console.log("User joined in: ", data.roomId);
+      });
+
+      socket.emit("join", {
+        tenantId: user.tenant.id,
+      });
+    }
+
+    // Unsubscribe an event
+    return () => {
+      socket.off("join");
+      socket.off("order-update");
+    };
+  }, []);
+
   const { data: orders } = useQuery({
     queryKey: ["orders"],
     queryFn: async () => {
