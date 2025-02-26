@@ -1,8 +1,8 @@
-import { Breadcrumb, Flex, Space, Table, Tag, Typography } from "antd";
+import { Breadcrumb, Flex, message, Space, Table, Tag, Typography } from "antd";
 import { RightOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
-import { Order } from "../../types";
-import { useQuery } from "@tanstack/react-query";
+import { Order, OrderEvents, PaymentMode, PaymentStatus } from "../../types";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getOrders } from "../../http/api";
 import { colorMapping } from "../../constants/constants";
 import { capitalize } from "lodash";
@@ -101,11 +101,28 @@ const TENANT_ID = 1;
 
 const Orders = () => {
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     if (user?.tenant) {
       socket.on("order-update", (data) => {
-        console.log("Data received", data);
+        if (
+          (data.event_type === OrderEvents.ORDER_CREATE &&
+            data.data.paymentMode === PaymentMode.CASH) ||
+          (data.event_type === OrderEvents.PAYMENT_STATUS_UPDATE &&
+            data.data.paymentStatus === PaymentStatus.PAID &&
+            data.data.paymentMode === PaymentMode.CARD)
+        ) {
+          queryClient.setQueryData(["orders"], (old: Order[]) => [
+            data.data,
+            ...old,
+          ]);
+          messageApi.open({
+            type: "success",
+            content: "New Order Received.",
+          });
+        }
       });
 
       socket.on("join", (data) => {
@@ -137,8 +154,11 @@ const Orders = () => {
     },
   });
 
+  console.log(orders);
+
   return (
     <>
+      {contextHolder}
       <Space direction="vertical" size={"large"} style={{ width: "100%" }}>
         <Flex justify="space-between">
           <Breadcrumb
@@ -148,21 +168,6 @@ const Orders = () => {
               { title: "Orders" },
             ]}
           />
-          {/* {isFetching && (
-            <Spin
-              indicator={
-                <LoadingOutlined
-                  style={{
-                    fontSize: 24,
-                  }}
-                  spin
-                />
-              }
-            />
-          )}
-          {isError && (
-            <Typography.Text type="danger">{error.message}</Typography.Text>
-          )} */}
         </Flex>
         {/* TODO: IMPLEMENT PAGINATION:- USE SERVER SIDE PAGINATION LOGIC IN BILLING SERVICE */}
         <Table columns={columns} dataSource={orders} rowKey={"_id"} />
